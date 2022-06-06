@@ -30,7 +30,7 @@ node server.js
 
 
 | HTTP verbs  | /images | /images/:imageid  | 
-| ------------- | ------------- |
+| ------------- | ------------- |--------------|
 | GET  | (Optional Arugement: ?number=50) Returns 50 (by default) randomly selected images | Returns the image with the image ID|
 | POST  | (Arguement: ?category='Cars' , requires login ) Adds an url of an image to the database   | - |
 | PUT  |  -  | ( requires login ) Replace the image document with a new Object|
