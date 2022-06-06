@@ -9,8 +9,8 @@ export const addImage = (req, res) => {
   newImage.save((err, image) => {
     if (err) {
       res.send(err);
+    } else {
+      res.json(image);
     }
-
-    res.json(image);
   });
 };
