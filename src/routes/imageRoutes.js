@@ -1,8 +1,11 @@
+import { isLoggedIn } from '../controllers/userAccountController';
+import { addImage, getAllImages } from '../controllers/imageController';
 const routes = (app) => {
   app
-    .route('/img')
+    .route('/images')
 
     .get(
+      // gets a random image
       (req, res, next) => {
         //TODO: Middleware here
         console.log(`Request from: ${req.originalUrl}`);
@@ -10,15 +13,10 @@ const routes = (app) => {
         console.log(`Request from: ${req.method}$`);
         next(); //make call to next function
       },
-      (req, res, next) => {
-        //next function
-        res.send('Get request successful');
-      }
+      getAllImages
     )
 
-    .post((req, res) => {
-      res.send('Post request Sucessful');
-    });
+    .post(isLoggedIn, addImage);
 
   app
     .route('/img/:imageID')

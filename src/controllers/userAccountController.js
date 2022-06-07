@@ -3,6 +3,7 @@ import { imageSchema } from '../models/imageModel';
 import { collectionsSchema } from '../models/collectionModel';
 import { userSchema } from '../models/userModel';
 
+//security modules
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+import { lodash as _ } from 'lodash';
 import jwt from 'jsonwebtoken';
 
 //routes
@@ -19,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //jwt setup
-app.use('/randomDir', (req, res, next) => {
+app.use((req, res, next) => {
   //checks if a JWT is provided in the header
   if (
     req.headers &&

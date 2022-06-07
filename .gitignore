@@ -105,3 +105,6 @@ dist
 
 # Mac Files
 .DS_Store
+
+# test files
+test.js
