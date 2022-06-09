@@ -40,7 +40,7 @@ export const addImage = async (req, res) => {
 
   const url = req.body.url;
   const category = req.body.category;
-  const user = req.user; // user is populated by backend
+  const user = req.user._id; // user is populated by backend
   const size = req.body.size;
   const color = req.body.color;
 
@@ -52,7 +52,6 @@ export const addImage = async (req, res) => {
   } else {
     //check if url is valid
     const getRequest = await isHttpOrHttps(url);
-
     if (getRequest === -1) {
       res.status(400).json({
         message: 'Invalid url',
@@ -101,10 +100,115 @@ export const addImage = async (req, res) => {
   }
 };
 
-export const getImageByID = (req, res) => {};
+export const getImageByID = (req, res) => {
+  //get image by id
+  const id = req.params.imageID;
+  Images.findById(id, (err, foundImage) => {
+    if (err) {
+      res.status(500).json({
+        message: 'Error finding image',
+      });
+    } else {
+      if (foundImage) {
+        //send image object
+        res.status(200).json(foundImage);
+        foundImage.calls += 1;
+        foundImage.save();
+      } else {
+        res.status(404).json({ message: 'Image not found' });
+      }
+    }
+  });
+};
 
-export const replaceImageByID = (req, res) => {};
+export const replaceImageByID = (req, res) => {
+  //replace image by id
+  const id = req.params.imageID;
+  const url = req.body.url;
+  const category = req.body.category;
+  const updateImage = {
+    url: url,
+    category: category,
+    submitedBy: req.user._id,
+    size: req.body.size,
+    color: req.body.color,
+    likes: 0,
+    dislikes: 0,
+    calls: 0,
+    createdDate: Date.now(),
+    updatedDate: Date.now(),
+  };
 
-export const patchImageByID = (req, res) => {};
+  if (url === undefined || category === undefined) {
+    //check if url and category are given
+    res.status(401).json({
+      message: 'Url and category are required',
+    });
+  } else {
+    // Find and replace object by id
+    Images.findOneAndReplace(
+      { _id: id },
+      updateImage,
+      { returnDocument: 'after' },
+      (err, changedImage) => {
+        if (err) {
+          res.status(500).json({
+            message: 'Error replacing image',
+          });
+        } else {
+          if (changedImage) {
+            console.log(changedImage);
+            res.status(200).json(changedImage);
+          }
+        }
+      }
+    );
+  }
+};
 
-export const deleteImagebyID = (req, res) => {};
+export const patchImageByID = async (req, res) => {
+  //patch image by id
+  //TO:DO validate that like and dislikes cannot be changed
+  const id = req.params.imageID;
+
+  try {
+    if (req.body.likes || req.body.dislikes) {
+      throw new Error('Likes and dislikes cannot be changed');
+    }
+    const updatedImage = await Images.findOneAndUpdate({ _id: id }, req.body, {
+      new: true,
+    });
+
+    if (updatedImage) {
+      res.status(200).json(updatedImage);
+    } else {
+      throw new Error('Image unable to be updated');
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
+export const deleteImagebyID = async (req, res) => {
+  //delete image by id
+  try {
+    console.log(req.user._id);
+
+    const id = req.params.imageID;
+    const result = await Images.findOneAndDelete({ _id: id });
+    if (result) {
+      res.status(200).json({ message: 'Image deleted', Object: result });
+    } else {
+      res.status(404).json({ message: 'Image not found' });
+    }
+    const foundUser = await User.findByIdAndRemove(
+      { _id: id },
+      { $pull: { submitedImages: id } }
+    );
+    if (!foundUser) {
+      console.log('User not updated');
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};

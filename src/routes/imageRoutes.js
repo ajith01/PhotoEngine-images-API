@@ -1,8 +1,15 @@
 import { isLoggedIn } from '../controllers/userAccountController';
-import { addImage, getAllImages } from '../controllers/imageController';
+import {
+  addImage,
+  getAllImages,
+  getImageByID,
+  replaceImageByID,
+  patchImageByID,
+  deleteImagebyID,
+} from '../controllers/imageController';
 const routes = (app) => {
   app
-    .route('/images')
+    .route('/image')
 
     .get(
       // gets a random image
@@ -19,19 +26,14 @@ const routes = (app) => {
     .post(isLoggedIn, addImage);
 
   app
-    .route('/img/:imageID')
+    .route('/image/:imageID')
+    .get(getImageByID)
 
-    .put((req, res) => {
-      res.send('Put request successful');
-    })
+    .put(isLoggedIn, replaceImageByID)
 
-    .patch((req, res) => {
-      res.send('Patch request successful');
-    })
+    .patch(isLoggedIn, patchImageByID)
 
-    .delete((req, res) => {
-      res.send('Delete request successful');
-    });
+    .delete(isLoggedIn, deleteImagebyID);
 };
 
 export default routes;
