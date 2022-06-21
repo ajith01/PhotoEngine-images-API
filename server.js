@@ -2,13 +2,12 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
-import { lodash as _ } from 'lodash';
 import jwt from 'jsonwebtoken';
 
 //routes
 import routes from './src/routes/imageRoutes.js';
 import accountRoutes from './src/routes/accountRoutes.js';
-
+import collectionRoutes from './src/routes/collectionRoutes.js';
 const app = express();
 const PORT = 3000;
 
@@ -45,6 +44,7 @@ app.use((req, res, next) => {
 //passing apps to routes function to activate all the routes
 routes(app);
 accountRoutes(app);
+collectionRoutes(app);
 
 //start server to PORT
 app.listen(PORT, () => {

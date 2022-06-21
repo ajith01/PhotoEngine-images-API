@@ -11,17 +11,7 @@ const routes = (app) => {
   app
     .route('/image')
 
-    .get(
-      // gets a random image
-      (req, res, next) => {
-        //TODO: Middleware here
-        console.log(`Request from: ${req.originalUrl}`);
-        console.log(`Request from: ${req.method}$`);
-        console.log(`Request from: ${req.method}$`);
-        next(); //make call to next function
-      },
-      getAllImages
-    )
+    .get(getAllImages)
 
     .post(isLoggedIn, addImage);
 

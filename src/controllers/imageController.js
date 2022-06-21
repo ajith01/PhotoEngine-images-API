@@ -13,7 +13,7 @@ export const getAllImages = (req, res) => {
 
   Images.find({}, (err, images) => {
     if (err) {
-      res.send(err);
+      res.json(err);
     } else {
       if (images.length < size) {
         res.json(images);
