@@ -91,69 +91,63 @@ export const addImage = async (req, res) => {
   }
 };
 
-export const getImageByID = (req, res) => {
+export const getImageByID = async (req, res) => {
   //get image by id
-  const id = req.params.imageID;
-  Images.findById(id, (err, foundImage) => {
-    if (err) {
-      res.status(500).json({
-        message: 'Error finding image',
-      });
+
+  try {
+    const id = req.params.imageID;
+    const foundImage = Images.findById(id);
+    if (foundImage) {
+      //send image object
+      res.status(200).json(foundImage);
+      foundImage.calls += 1;
+      foundImage.save();
     } else {
-      if (foundImage) {
-        //send image object
-        res.status(200).json(foundImage);
-        foundImage.calls += 1;
-        foundImage.save();
-      } else {
-        res.status(404).json({ message: 'Image not found' });
-      }
+      return res.status(404).json({ message: 'Image not found' });
     }
-  });
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
 };
 
-export const replaceImageByID = (req, res) => {
+export const replaceImageByID = async (req, res) => {
   //replace image by id
-  const id = req.params.imageID;
-  const url = req.body.url;
-  const category = req.body.category;
-  const updateImage = {
-    url: url,
-    category: category,
-    submitedBy: req.user._id,
-    size: req.body.size,
-    color: req.body.color,
-    likes: 0,
-    dislikes: 0,
-    calls: 0,
-    createdDate: Date.now(),
-    updatedDate: Date.now(),
-  };
 
-  if (url === undefined || category === undefined) {
-    //check if url and category are given
-    res.status(401).json({
-      message: 'Url and category are required',
-    });
-  } else {
+  try {
+    const id = req.params.imageID;
+    const url = req.body.url;
+    const category = req.body.category;
+    const updateImage = {
+      url: url,
+      category: category,
+      submitedBy: req.user._id,
+      size: req.body.size,
+      color: req.body.color,
+      likes: 0,
+      dislikes: 0,
+      calls: 0,
+      createdDate: Date.now(),
+      updatedDate: Date.now(),
+    };
+
+    if (url === undefined || category === undefined) {
+      //check if url and category are given
+      return res.status(401).json({
+        message: 'Url and category are required',
+      });
+    }
     // Find and replace object by id
-    Images.findOneAndReplace(
+    const changedImage = await Images.findOneAndReplace(
       { _id: id },
       updateImage,
-      { returnDocument: 'after' },
-      (err, changedImage) => {
-        if (err) {
-          res.status(500).json({
-            message: 'Error replacing image',
-          });
-        } else {
-          if (changedImage) {
-            console.log(changedImage);
-            res.status(200).json(changedImage);
-          }
-        }
-      }
+      { returnDocument: 'after' }
     );
+
+    if (changedImage) {
+      res.status(200).json(changedImage);
+    }
+  } catch (err) {
+    res.status(400).json({ error: err });
   }
 };
 
@@ -200,6 +194,6 @@ export const deleteImagebyID = async (req, res) => {
       console.log('User not updated');
     }
   } catch (error) {
-    res.status(500).send(error);
+    res.status(400).send(error);
   }
 };
