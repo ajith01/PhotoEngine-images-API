@@ -23,7 +23,7 @@ export const makeNewCollection = async (req, res) => {
 
   try {
     const userId = req.user._id;
-    const newCollection = new Collection({
+    const newCollection = await new Collection({
       name: req.params.name,
       description: req.body.description,
       images: [],

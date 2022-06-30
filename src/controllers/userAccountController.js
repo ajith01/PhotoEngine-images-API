@@ -1,6 +1,4 @@
 import mongoose from 'mongoose';
-import { imageSchema } from '../models/imageModel';
-import { collectionsSchema } from '../models/collectionModel';
 import { userSchema } from '../models/userModel';
 
 //security modules
@@ -20,7 +18,7 @@ export const isLoggedIn = (req, res, next) => {
   }
 };
 
-export const registerUser = (req, res) => {
+export const registerUser = async (req, res) => {
   //register user account
 
   //TODO: add validation for password and username
@@ -29,59 +27,49 @@ export const registerUser = (req, res) => {
   //check if username is already taken
   //check if password is strong enough
 
-  const user = new User({ username: req.body.username }); //create new user object
-  //requires that we use salt etc,fix this error
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res.status(400).json({ message: 'Error Hashing Password' });
-    } else {
-      user.hashedPassword = hash;
-      user.save((err, user) => {
-        if (err) {
-          return res.status(400).json({ message: 'Error creating user' });
-        } else {
-          //return userback without the hashed password
-          user.hashedPassword = undefined;
-          res.status(201).json(user);
-        }
-      });
-    }
-  }); //change password field with hash
+  try {
+    const user = await new User({ username: req.body.username }); //create new user object
+    //requires that we use salt etc,fix this error
+    const hash = await bcrypt.hash(req.body.password, 10); //hash password
+    user.hashedPassword = hash;
+    const savedUser = await user.save(); //save user to database
+
+    //return userback without the hashed password
+    savedUser.hashedPassword = undefined;
+    res.status(201).json(savedUser);
+
+    //change password field with hash
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
 };
 
-export const logInUser = (req, res) => {
-  User.findOne({ username: req.body.username }, (err, user) => {
-    if (err) {
-      res.status(400).json({ message: 'Error logging in' });
-    }
+export const logInUser = async (req, res) => {
+  try {
+    const foundUser = await User.findOne({ username: req.body.username });
     if (!user) {
       // no user found
-      res.status(401).json({ message: 'User not found' });
-    } else if (user) {
-      //if a user is found, compare the password
-      //change this into callback
-      bcrypt.compare(req.body.password, user.hashedPassword, (err, result) => {
-        if (err) {
-          return res.status(401).json({ message: 'Authentication failed' });
-        } else {
-          if (result) {
-            //if the password is correct, create a token
-            return res.json({
-              token: jwt.sign(
-                { username: user.username, _id: user.id },
-                process.env.JWT_SECRET,
-                {
-                  expiresIn: '24h',
-                }
-              ),
-            });
-          } else {
-            return res.status(401).json({ message: 'Authentication failed' });
-          }
-        }
-      });
+      return res.status(401).json({ message: 'User not found' });
     }
-  });
+    //change this into callback
+    const result = bcrypt.compare(req.body.password, user.hashedPassword);
+    if (result) {
+      //if the password is correct, create a token
+      return res.json({
+        token: jwt.sign(
+          { username: user.username, _id: user.id },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: '24h',
+          }
+        ),
+      });
+    } else {
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+  } catch (err) {
+    res.status(400).json({ error: err });
+  }
 };
 
 //TO:DO implement a log out function that will
